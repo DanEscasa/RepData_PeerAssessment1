@@ -1,25 +1,131 @@
 ---
 title: "Reproducible Research: Peer Assessment 1"
+author: Daniel Escasa
 output: 
   html_document:
+    number_sections: TRUE
     keep_md: true
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
+```
+{r setup, include=FALSE} knitr::opts_chunk$set(echo = TRUE)
+```
+# Introduction {.unnumbered}
 
+*Excerpts from the [original
+repo](https://github.com/rdpeng/RepData_PeerAssessment1) from which this
+was forked*
 
-## Loading and preprocessing the data
+It is now possible to collect a large amount of data about personal
+movement using activity monitoring devices such as a
+[Fitbit](http://www.fitbit.com), [Nike
+Fuelband](http://www.nike.com/us/en_us/c/nikeplus-fuelband), or [Jawbone
+Up](https://jawbone.com/up). These type of devices are part of the
+"quantified self" movement -- a group of enthusiasts who take
+measurements about themselves regularly to improve their health, to find
+patterns in their behavior, or because they are tech geeks. But these
+data remain under-utilized both because the raw data are hard to obtain
+and there is a lack of statistical methods and software for processing
+and interpreting the data.
 
+This project makes use of data from a personal activity monitoring
+device which collects data at five-minute intervals through out the day.
 
+The data consists of two months of data from an anonymous individual
+collected during the months of October and November, 2012 and include
+the number of steps taken in five-minute intervals each day.
+
++---------------+-----------------------------------------------------+
+| Variable name | Description                                         |
++===============+=====================================================+
+| steps         | Number of steps taking in a five-minute interval    |
+|               | (missing values are coded as \`NA\`)                |
++---------------+-----------------------------------------------------+
+| date          | The date on which the measurement was taken, in     |
+|               | YYYY-MM-DD format                                   |
++---------------+-----------------------------------------------------+
+| interval      | Identifier for the five-minute interval in which    |
+|               | measurement was taken                               |
++---------------+-----------------------------------------------------+
+
+The following are the questions to be addressed:
+
+-   What is mean total number of steps taken per day?
+
+-   What is the average daily activity pattern?
+
+-   Are there differences in activity patterns between weekdays and
+    weekends?
+
+# Boring admin stuff
+
+## Install ggplot2 if necessary
+
+```{r echo = TRUE}
+if (!require("ggplot2")) {
+    message("Installing ggplot2")
+    install.packages("ggplot2")
+}
+```
+
+## Download the zipped dataset if necessary
+
+```{r echo = TRUE}
+if (!file.exists("./activity.zip")) {
+          message("Downloading dataset")
+          download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip", 
+                        destfile = "./activity.zip",  
+                        method = "internal", 
+                        mode = "wb")
+     }
+```
+
+## Unzip the dataset if necessary
+
+```{r echo = TRUE}
+if (!file.exists(".activity.csv")) {
+          message("Extracting dataset")
+          unzip("./activity.zip", 
+                overwrite = FALSE)
+     }
+```
+
+## Read in the data
+```{r echo = TRUE}
+# Shouldn't need error checking here
+activity <- read.csv("activity.csv")
+```
+
+# Now let's get cooking
 
 ## What is mean total number of steps taken per day?
 
+```{r echo = TRUE}
+# compute the total number of steps per day
+totalDaySteps <- with(data = activity,
+                      aggregate(steps,
+                                by  = list(date),
+                                FUN = sum))
+colnames(totalDaySteps) <- c("date", "steps")
 
+# compute the mean and median number of steps per day
+meanDaySteps <- with(data = activity,
+                     aggregate(steps,
+                               by  = list(date),
+                               FUN = mean))
+colnames(meanDaySteps) <- c("date", "steps")
+
+medianDaySteps <- with(data = activity,
+                       aggregate(steps,
+                                 by  = list(date),
+                                 FUN = median))
+colnames(medianDaySteps) <- c("date", "steps")
+```
 
 ## What is the average daily activity pattern?
 
-
-
 ## Imputing missing values
-
-
 
 ## Are there differences in activity patterns between weekdays and weekends?
