@@ -1,5 +1,5 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
+title: "Reproducible Research: Activity Monitoring"
 author: Daniel Escasa
 output: 
   html_document:
@@ -85,7 +85,7 @@ if (!file.exists("./activity.zip")) {
 ## Unzip the dataset if necessary
 
 ```{r echo = TRUE}
-if (!file.exists(".activity.csv")) {
+if (!file.exists("activity.csv")) {
           message("Extracting dataset")
           unzip("./activity.zip", 
                 overwrite = FALSE)
@@ -101,16 +101,14 @@ activity <- read.csv("activity.csv")
 # Now let's get cooking
 
 ## What is mean total number of steps taken per day?
-
+Compute the total number, mean, and median steps per day
 ```{r echo = TRUE}
-# compute the total number of steps per day
 totalDaySteps <- with(data = activity,
                       aggregate(steps,
                                 by  = list(date),
                                 FUN = sum))
 colnames(totalDaySteps) <- c("date", "steps")
 
-# compute the mean and median number of steps per day
 meanDaySteps <- with(data = activity,
                      aggregate(steps,
                                by  = list(date),
@@ -122,6 +120,28 @@ medianDaySteps <- with(data = activity,
                                  by  = list(date),
                                  FUN = median))
 colnames(medianDaySteps) <- c("date", "steps")
+```
+For convenience, merge the three into one dataframe.
+```{r echo = TRUE}
+stepsStats <- merge(totalDaySteps, meanDaySteps, by = "date")
+stepsStats <- merge(stepsStats, medianDaySteps, by = "date")
+colnames(stepsStats) <- c("date", "totalSteps", "meanSteps", "medianSteps")
+```
+
+Plot total number of steps taken each day.
+```{r echo = TRUE}
+with(stepsStats,
+     barplot(totalSteps, names.arg = date))
+```
+Plotting mean of number of steps per day.
+```{r echo = TRUE}
+with(stepsStats, 
+     barplot(meanSteps, names.arg = date))
+```
+Lastly, plot the median number of steps per day.
+```{r echo = TRUE}
+with(stepsStats, 
+     barplot(medianSteps, names.arg = date))
 ```
 
 ## What is the average daily activity pattern?
