@@ -1,12 +1,13 @@
 ---
-title: "Reproducible Research: Activity Monitoring"
-author: Daniel Escasa
-output: 
+title: 'Reproducible Research: Activity Monitoring'
+author: "Daniel Escasa"
+output:
+  pdf_document: default
   html_document:
-    number_sections: TRUE
-    keep_md: true
-editor_options: 
-  markdown: 
+    number_sections: yes
+    keep_md: yes
+editor_options:
+  markdown:
     wrap: 72
 ---
 ```
