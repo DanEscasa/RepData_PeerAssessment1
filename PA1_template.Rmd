@@ -128,21 +128,28 @@ stepsStats <- merge(stepsStats, medianDaySteps, by = "date")
 colnames(stepsStats) <- c("date", "totalSteps", "meanSteps", "medianSteps")
 ```
 
-Plot total number of steps taken each day.
+Plot total number of steps taken each day. Telling `barplot()` to remove spaces between bars. Also using (as.Date(date) - as.Date(totalDaySteps[1, 1]) + 1) as names.arg so labels on x axis are day numbers, not the dates. This is so the plot is neater.
 ```{r echo = TRUE}
 with(stepsStats,
-     barplot(totalSteps, names.arg = date))
+     barplot(space = 0, totalSteps, 
+             xlab = "Day", ylab = "Total Steps", 
+             names.arg = (as.Date(date) - as.Date(totalDaySteps[1, 1]) + 1)))
 ```
-Plotting mean of number of steps per day.
+Plot mean of number of steps per day.
 ```{r echo = TRUE}
 with(stepsStats, 
-     barplot(meanSteps, names.arg = date))
+     barplot(space = 0, meanSteps, 
+             xlab = "Day", ylab = "Average Steps", 
+             names.arg = (as.Date(date) - as.Date(totalDaySteps[1, 1]) + 1)))
 ```
 Lastly, plot the median number of steps per day.
 ```{r echo = TRUE}
 with(stepsStats, 
-     barplot(medianSteps, names.arg = date))
+     barplot(space = 0, medianSteps, 
+             xlab = "Day", ylab = "Median Steps", 
+             names.arg = (as.Date(date) - as.Date(totalDaySteps[1, 1]) + 1)))
 ```
+Median is zero because of the large number of zeroes in that column. `NA`s may also account for that.
 
 ## What is the average daily activity pattern?
 
