@@ -62,19 +62,23 @@ The following are the questions to be addressed:
 
 # Boring admin stuff
 
-## Install ggplot2 if necessary
+## Install ggplot2 and knitr if necessary
 
 ```{r echo = TRUE}
 if (!require("ggplot2")) {
     message("Installing ggplot2")
     install.packages("ggplot2")
 }
+if (!require("knitr")) {
+  message("Installing knitr")
+  install.packages("knitr")
+}
 ```
 
 ## Download the zipped dataset if necessary
 
 ```{r echo = TRUE}
-if (!file.exists("./activity.zip")) {
+if (!file.exists("activity.zip")) {
           message("Downloading dataset")
           download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip", 
                         destfile = "./activity.zip",  
@@ -98,60 +102,74 @@ if (!file.exists("activity.csv")) {
 # Shouldn't need error checking here
 activity <- read.csv("activity.csv")
 ```
+## Load the libraries
+```{r}
+library(ggplot2)
+library(knitr)
+```
 
 # Now let's get cooking
 
 ## What is mean total number of steps taken per day?
-Compute the total number, mean, and median steps per day
+Compute the total number, mean, and median steps per day.
+As an aside, take note of the use of the superassignment (`<<-`) instead of the usual assignment operator (`<-`). This is because the `with(){}` creates its own scope. And yes, the scope applies to the `colnames()` function as well.
 ```{r echo = TRUE}
-totalDaySteps <- with(data = activity,
-                      aggregate(steps,
-                                by  = list(date),
-                                FUN = sum))
-colnames(totalDaySteps) <- c("date", "steps")
-
-meanDaySteps <- with(data = activity,
-                     aggregate(steps,
-                               by  = list(date),
-                               FUN = mean))
-colnames(meanDaySteps) <- c("date", "steps")
-
-medianDaySteps <- with(data = activity,
-                       aggregate(steps,
-                                 by  = list(date),
-                                 FUN = median))
-colnames(medianDaySteps) <- c("date", "steps")
+with(data = activity,{
+  totalDaySteps  <<- aggregate(steps, by = list(date), FUN = sum)
+  colnames(totalDaySteps) <<- c("date", "steps")
+  meanDaySteps   <<- aggregate(steps, by = list(date), FUN = mean)
+  colnames(meanDaySteps) <<- c("date", "steps")
+  medianDaySteps <<- aggregate(steps, by = list(date), FUN = median)
+  colnames(medianDaySteps) <<- c("date", "steps")
+})
 ```
 For convenience, merge the three into one dataframe.
 ```{r echo = TRUE}
-stepsStats <- merge(totalDaySteps, meanDaySteps, by = "date")
-stepsStats <- merge(stepsStats, medianDaySteps, by = "date")
-colnames(stepsStats) <- c("date", "totalSteps", "meanSteps", "medianSteps")
+dayStats           <- merge(totalDaySteps, meanDaySteps, by = "date")
+dayStats           <- merge(dayStats, medianDaySteps, by = "date")
+colnames(dayStats) <- c("date", "totalSteps", "meanSteps", "medianSteps")
 ```
 
-Plot total number of steps taken each day. Telling `barplot()` to remove spaces between bars. Also using (as.Date(date) - as.Date(totalDaySteps[1, 1]) + 1) as names.arg so labels on x axis are day numbers, not the dates. This is so the plot is neater.
+Plot total number of steps taken each day, telling `barplot()` to remove spaces between bars. Also using (as.Date(date) - as.Date(totalDaySteps[1, 1]) + 1) as names.arg so labels on x axis are day numbers, not the dates. This is so the plot is neater.
 ```{r echo = TRUE}
-with(stepsStats,
+with(dayStats,
      barplot(space = 0, totalSteps, 
              xlab = "Day", ylab = "Total Steps", 
              names.arg = (as.Date(date) - as.Date(totalDaySteps[1, 1]) + 1)))
 ```
+
 Plot mean of number of steps per day.
 ```{r echo = TRUE}
-with(stepsStats, 
+with(dayStats, 
      barplot(space = 0, meanSteps, 
              xlab = "Day", ylab = "Average Steps", 
              names.arg = (as.Date(date) - as.Date(totalDaySteps[1, 1]) + 1)))
 ```
+
+
+And here's the dataframe of average number of steps per day:
+```{r}
+kable(dayStats[, c(1, 3)],
+      col.names = c("date", "mean"),
+      format.args = list(big.mark = ","))
+```
+
 Lastly, plot the median number of steps per day.
 ```{r echo = TRUE}
-with(stepsStats, 
+with(dayStats, 
      barplot(space = 0, medianSteps, 
              xlab = "Day", ylab = "Median Steps", 
              names.arg = (as.Date(date) - as.Date(totalDaySteps[1, 1]) + 1)))
 ```
+
 Median is zero because of the large number of zeroes in that column. `NA`s may also account for that.
 
+And here's the dataframe of median number of steps per day:
+```{r}
+kable(dayStats[, c(1, 4)],
+      col.names = c("date", "median"),
+      format.args = list(big.mark = ","))
+```
 ## What is the average daily activity pattern?
 
 ## Imputing missing values
