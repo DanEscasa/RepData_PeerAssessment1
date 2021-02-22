@@ -187,8 +187,13 @@ Define a function that will take an integer -- in this case, the interval -- and
 int2Time <- function(hhmm) {
      # separate the integer into its minute and hour components
      # assumes an integer of the form HHMM, where HH and MM are the hour
+<<<<<<< HEAD
      # (between 0-23) and minute (between 0-59) components, respectively, of the
      # time.
+=======
+     # (between 0-23) and respectively.minute (between 0-59) components of the
+     # time, 
+>>>>>>> 22493c0444693393afedc40f46f09c9193266733
      # Does not do parameter validation
      startHr  <- hhmm %% 100
      startMin <- hhmm %/% 100
