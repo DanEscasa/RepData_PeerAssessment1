@@ -42,7 +42,7 @@ the number of steps taken in five-minute intervals each day.
 | Variable name | Description                                         |
 +===============+=====================================================+
 | steps         | Number of steps taking in a five-minute interval    |
-|               | (missing values are coded as \`NA\`)                |
+|               | (missing values are coded as `NA`)                |
 +---------------+-----------------------------------------------------+
 | date          | The date on which the measurement was taken, in     |
 |               | YYYY-MM-DD format                                   |
@@ -81,7 +81,7 @@ if (!require("knitr")) {
 if (!file.exists("activity.zip")) {
           message("Downloading dataset")
           download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip", 
-                        destfile = "./activity.zip",  
+                        destfile = "activity.zip",  
                         method = "internal", 
                         mode = "wb")
      }
@@ -92,7 +92,7 @@ if (!file.exists("activity.zip")) {
 ```{r echo = TRUE}
 if (!file.exists("activity.csv")) {
           message("Extracting dataset")
-          unzip("./activity.zip", 
+          unzip("activity.zip", 
                 overwrite = FALSE)
      }
 ```
@@ -112,7 +112,7 @@ library(knitr)
 
 ## What is mean total number of steps taken per day?
 Compute the total number, mean, and median steps per day.
-As an aside, take note of the use of the superassignment (`<<-`) instead of the usual assignment operator (`<-`). This is because the `with(){}` creates its own scope. And yes, the scope applies to the `colnames()` function as well.
+As an aside, take note of the use of the superassignment (`<<-`) instead of the usual assignment operator (`<-`). This is because the `with(){}` creates its own scope. And yes, the scope applies to assigning `colnames()`.
 ```{r echo = TRUE}
 with(data = activity,{
   totalDaySteps  <<- aggregate(steps, by = list(date), FUN = sum)
@@ -150,8 +150,7 @@ with(dayStats,
 And here's the dataframe of average number of steps per day:
 ```{r}
 kable(dayStats[, c(1, 3)],
-      col.names = c("date", "mean"),
-      format.args = list(big.mark = ","))
+      col.names = c("date", "mean"))
 ```
 
 Lastly, plot the median number of steps per day.
@@ -164,13 +163,10 @@ with(dayStats,
 
 Median is zero because of the large number of zeroes in that column. `NA`s may also account for that.
 
-And here's the dataframe of median number of steps per day:
-```{r}
-kable(dayStats[, c(1, 4)],
-      col.names = c("date", "median"),
-      format.args = list(big.mark = ","))
-```
+Since the median is zero for all days, there's no point in presenting the dataframe.
+
 ## What is the average daily activity pattern?
+
 
 ## Imputing missing values
 
