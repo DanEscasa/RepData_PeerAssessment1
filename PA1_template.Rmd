@@ -62,7 +62,7 @@ The following are the questions to be addressed:
 
 # Boring admin stuff
 
-## Install ggplot2 and knitr if necessary
+## Install ggplot2, knitr, and scales if not yet installed
 
 ```{r echo = TRUE}
 if (!require("ggplot2")) {
@@ -73,21 +73,25 @@ if (!require("knitr")) {
   message("Installing knitr")
   install.packages("knitr")
 }
+if (!require("scales")) {
+  message("Installing scales")
+  install.packages("scales")
+}
 ```
 
-## Download the zipped dataset if necessary
+## Download the zipped dataset if not yet present
 
 ```{r echo = TRUE}
 if (!file.exists("activity.zip")) {
           message("Downloading dataset")
           download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip", 
                         destfile = "activity.zip",  
-                        method = "internal", 
-                        mode = "wb")
+                        method   = "internal", 
+                        mode     = "wb")
      }
 ```
 
-## Unzip the dataset if necessary
+## Unzip the dataset if not yet present
 
 ```{r echo = TRUE}
 if (!file.exists("activity.csv")) {
@@ -106,21 +110,22 @@ activity <- read.csv("activity.csv")
 ```{r}
 library(ggplot2)
 library(knitr)
+library(scales)
 ```
 
 # Now let's get cooking
 
 ## What is mean total number of steps taken per day?
 Compute the total number, mean, and median steps per day.
-As an aside, take note of the use of the superassignment (`<<-`) instead of the usual assignment operator (`<-`). This is because the `with(){}` creates its own scope. And yes, the scope applies to assigning `colnames()`.
+As an aside, take note of the use of the superassignment (`<<-`) instead of the usual assignment operator (`<-`). This is because the `with(){}` creates its own scope. And yes, the scope applies to assigning to `colnames()`.
 ```{r echo = TRUE}
 with(data = activity,{
-  totalDaySteps  <<- aggregate(steps, by = list(date), FUN = sum)
-  colnames(totalDaySteps) <<- c("date", "steps")
-  meanDaySteps   <<- aggregate(steps, by = list(date), FUN = mean)
-  colnames(meanDaySteps) <<- c("date", "steps")
-  medianDaySteps <<- aggregate(steps, by = list(date), FUN = median)
-  colnames(medianDaySteps) <<- c("date", "steps")
+     totalDaySteps  <<- aggregate(steps, by = list(date), FUN = sum)
+     colnames(totalDaySteps) <<- c("date", "steps")
+     meanDaySteps   <<- aggregate(steps, by = list(date), FUN = mean)
+     colnames(meanDaySteps) <<- c("date", "steps")
+     medianDaySteps <<- aggregate(steps, by = list(date), FUN = median)
+     colnames(medianDaySteps) <<- c("date", "steps")
 })
 ```
 For convenience, merge the three into one dataframe.
@@ -130,20 +135,26 @@ dayStats           <- merge(dayStats, medianDaySteps, by = "date")
 colnames(dayStats) <- c("date", "totalSteps", "meanSteps", "medianSteps")
 ```
 
-Plot total number of steps taken each day, telling `barplot()` to remove spaces between bars. Also using (as.Date(date) - as.Date(totalDaySteps[1, 1]) + 1) as names.arg so labels on x axis are day numbers, not the dates. This is so the plot is neater.
+Plot total number of steps taken each day, telling `barplot()` to remove spaces between bars. Also, using `(as.Date(date) - as.Date(totalDaySteps[1, 1]) + 1)` as `names.arg` so labels on x axis are day numbers, not the dates. This is so the plot is neater.
 ```{r echo = TRUE}
 with(dayStats,
-     barplot(space = 0, totalSteps, 
-             xlab = "Day", ylab = "Total Steps", 
+     barplot(space = 0, totalSteps,
+             main  = "Total Number of Steps per Day",
+             xlab  = "Day", ylab = "Total Steps", 
              names.arg = (as.Date(date) - as.Date(totalDaySteps[1, 1]) + 1)))
+dev.copy(png, "plots/01-totalSteps.png")
+dev.off()
 ```
 
 Plot mean of number of steps per day.
 ```{r echo = TRUE}
 with(dayStats, 
      barplot(space = 0, meanSteps, 
-             xlab = "Day", ylab = "Average Steps", 
+             main  = "Average Number of Steps per Day",
+             xlab  = "Day", ylab = "Average Steps", 
              names.arg = (as.Date(date) - as.Date(totalDaySteps[1, 1]) + 1)))
+dev.copy(png, "plots/02-meanSteps.png")
+dev.off()
 ```
 
 
@@ -157,16 +168,72 @@ Lastly, plot the median number of steps per day.
 ```{r echo = TRUE}
 with(dayStats, 
      barplot(space = 0, medianSteps, 
-             xlab = "Day", ylab = "Median Steps", 
+             main  = "Median Number of Steps per Day",
+             xlab  = "Day", ylab = "Median Steps", 
              names.arg = (as.Date(date) - as.Date(totalDaySteps[1, 1]) + 1)))
+dev.copy(png, "plots/03-medianSteps.png")
+dev.off()
 ```
 
-Median is zero because of the large number of zeroes in that column. `NA`s may also account for that.
+Median is zero because of the large number of zero steps. `NA`s may also account for that.
 
 Since the median is zero for all days, there's no point in presenting the dataframe.
 
 ## What is the average daily activity pattern?
+_Create a dataframe with steps per interval, and plot the line._
 
+Define a function that will take an integer -- in this case, the interval -- and convert it to a `time` object.
+```{r}
+int2Time <- function(hhmm) {
+     # separate the integer into its minute and hour components
+     # assumes an integer of the form HHMM, where HH and MM are the hour
+     # (between 0-23) and respectively.minute (between 0-59) components of the
+     # time, 
+     # Does not do parameter validation
+     startHr  <- hhmm %% 100
+     startMin <- hhmm %/% 100
+     # and put them back together 
+     return(paste0(substring(paste0("0", startMin), nchar(startMin)),
+                   ":",
+                   substring(paste0("0", startHr), nchar(startHr))))
+}
+```
+Average the number of steps over each five-minute interval and plot the time series.
+```{r}
+intervalSteps <- aggregate(steps ~ interval, data = activity, mean)
+intervalSteps$time <- as.POSIXct(int2Time(intervalSteps$interval), format = "%H:%M", tz = "MST")
+ggplot(intervalSteps, aes(x = time, y = steps)) +
+     geom_line() +
+     scale_x_datetime(labels = date_format("%H:%M", tz = "MST"), 
+                      date_breaks = "2 hours") +
+     labs(title = "Time Series Plot of Average Steps Taken Per Day", 
+          x = "Time of Day", y = "Average Steps") +
+     theme(plot.title = element_text(hjust = 0.5))
+dev.copy(png, "plots/04-intervalSteps.png")
+dev.off()
+```
+
+So, from the plot, on average there is negligible activity from midnight (see below) to around 5:30 in the morning, slowly climbing at around 7:00, and a spike of over 200 steps at around 8:30.
+
+From then on, there is a minimum of 25 to a maximum of 100 steps, and activity dies down starting close to 11:30 PM.
+
+_Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?_
+
+The starting time and corresponding average number of steps are in `intervalSteps[which.max(intervalSteps$steps), 1]` and `intervalSteps[which.max(intervalSteps$steps), 2]` respectively. I thought I'd include the end time of that interval by adding five minutes.
+```{r echo = TRUE}
+intervalStart <- intervalSteps[which.max(intervalSteps$steps), 1]
+intervalEnd   <- intervalSteps[which.max(intervalSteps$steps), 1] + 5
+averageSteps  <- intervalSteps[which.max(intervalSteps$steps), 2]
+```
+Since the steps from interval 0 to interval 600 are mostly zero, I'm betting that the measurements start midnight. If they don't, I'm screwed. Or not, maybe just have to make adjustments in the conversions.
+
+What I'm fairly sure of is that the intervals are of the form `hhmm`, where hh and mm are the hour and minute components of the interval. As evidence, `interval` on the 24th row is 155, and on the 25th is 200. Examine the 36th and 37th rows, and `interval` goes from 255 to 300.
+
+Output will be in 24-hour format.
+```{r echo = TRUE}
+sprintf("Maximum number of steps on average taken from %s to %s, number of steps = %f",
+        int2Time(intervalStart), int2Time(intervalEnd), averageSteps)
+```
 
 ## Imputing missing values
 
