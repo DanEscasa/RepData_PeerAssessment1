@@ -187,13 +187,8 @@ Define a function that will take an integer -- in this case, the interval -- and
 int2Time <- function(hhmm) {
      # separate the integer into its minute and hour components
      # assumes an integer of the form HHMM, where HH and MM are the hour
-<<<<<<< HEAD
      # (between 0-23) and minute (between 0-59) components, respectively, of the
      # time.
-=======
-     # (between 0-23) and respectively.minute (between 0-59) components of the
-     # time, 
->>>>>>> 22493c0444693393afedc40f46f09c9193266733
      # Does not do parameter validation
      startHr  <- hhmm %% 100
      startMin <- hhmm %/% 100
@@ -232,7 +227,7 @@ averageSteps  <- intervalSteps[which.max(intervalSteps$steps), 2]
 ```
 Since the steps from interval 0 to interval 600 are mostly zero, I'm betting that the measurements start midnight. If they don't, I'm screwed. Or not, maybe just have to make adjustments in the conversions.
 
-What I'm fairly sure of is that the intervals are of the form `hhmm`, where hh and mm are the hour and minute components of the interval. As evidence, `interval` on the 24th row is 155, and on the 25th is 200. Examine the 36th and 37th rows, and `interval` goes from 255 to 300.
+What I'm fairly sure of is that the intervals are of the form `hhmm`, where hh and mm are the hour and minute components of the interval. As evidence, `interval` on the 24th row is 155, and on the 25th is 200. Examine the 36th and 37th rows, and `interval` goes from 255 to 300. Where are 160, 165, ..., between 15 and 200, or 260, 265, ..., between 255 and 300? First, 160 == 200, and 260 == 300. That's further evidence that the `interval`s *are* time stamps, of the form `hhmm`.
 
 Output will be in 24-hour format.
 ```{r echo = TRUE}
