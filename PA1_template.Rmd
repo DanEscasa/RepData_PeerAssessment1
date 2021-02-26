@@ -2,13 +2,13 @@
 title: 'Reproducible Research: Activity Monitoring'
 author: "Daniel Escasa"
 output:
-  pdf_document: 
-    toc: true
-    number_sections: true
   html_document:
     toc: true
     number_sections: yes
     keep_md: yes
+  pdf_document: 
+    toc: true
+    number_sections: true
 editor_options:
   markdown:
     wrap: 72
@@ -336,4 +336,4 @@ dev.copy(png, "plots/06-WkDayVsWkEnd.png")
 ```
 The plot tells us that on both weekends and weekdays, the subjects are on average inactive, possibly asleep, from midnight to 5:30 in the morning. However, inactivity on weekends stretches to about 8:00 AM, whereas the subjects start moving about 5:30 AM on weekdays. Activity on both weekends and weekdays spike at 9:00 AM, although to a lesser extent for the former.
 
-Oddly, activity from 10:00 AM all the way to 5:30 PM is heavier on weekdays, then wane at 11:00 PM for both weekends and weekdays.
+Oddly, activity from 10:00 AM all the way to 5:30 PM is heavier on weekends, then wane at 11:00 PM for both weekends and weekdays.
