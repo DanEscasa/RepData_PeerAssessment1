@@ -65,7 +65,7 @@ The following are the questions to be addressed:
 
 # Boring admin stuff
 
-## Install ggplot2, knitr, and scales if not yet installed
+## Install the needed libraries
 
 
 ```r
@@ -99,6 +99,28 @@ if (!require("scales")) {
 
 ```
 ## Loading required package: scales
+```
+
+```r
+if (!require("numform")) {
+  message("Installing numform")
+  install.packages("numform")
+}
+```
+
+```
+## Loading required package: numform
+```
+
+```r
+if (!require("timeDate")) {
+  message("Installing timeDate")
+  install.packages("timeDate")
+}
+```
+
+```
+## Loading required package: timeDate
 ```
 
 ## Download the zipped dataset if not yet present
@@ -137,13 +159,15 @@ activity <- read.csv("activity.csv")
 library(ggplot2)
 library(knitr)
 library(scales)
+library(numform)
+library(timeDate)
 ```
 
 # Now let's get cooking
 
 ## What is mean total number of steps taken per day?
 Compute the total number, mean, and median steps per day.
-As an aside, take note of the use of the superassignment (`<<-`) instead of the usual assignment operator (`<-`). This is because the `with(){}` creates its own scope. And yes, the scope applies to assigning to `colnames()`.
+As an aside, take note of the use of the superassignment (`<<-`) instead of the usual assignment operator (`<-`). This is because the `with(){}` creates its own scope.
 
 ```r
 with(data = activity,{
@@ -152,7 +176,7 @@ with(data = activity,{
      medianDaySteps <<- aggregate(steps, by = list(date), FUN = median)
 })
 ```
-For convenience, merge the three into one dataframe.
+For convenience, merge the three into one dataframe and assign meaningful `colnames()`.
 
 
 ```r
@@ -329,6 +353,24 @@ Median is zero because of the large number of zero `steps` — after all, `steps
 
 Since the median is zero for all days, there's no point in presenting the dataframe.
 
+The `summary()` function will also give us similar info:
+
+```r
+kable(summary(dayStats))
+```
+
+
+
+|   |        date  |  totalSteps  |  meanSteps     | medianSteps |
+|:--|:-------------|:-------------|:---------------|:------------|
+|   |2012-10-01: 1 |Min.   :   41 |Min.   : 0.1424 |Min.   :0    |
+|   |2012-10-02: 1 |1st Qu.: 8841 |1st Qu.:30.6979 |1st Qu.:0    |
+|   |2012-10-03: 1 |Median :10765 |Median :37.3785 |Median :0    |
+|   |2012-10-04: 1 |Mean   :10766 |Mean   :37.3826 |Mean   :0    |
+|   |2012-10-05: 1 |3rd Qu.:13294 |3rd Qu.:46.1597 |3rd Qu.:0    |
+|   |2012-10-06: 1 |Max.   :21194 |Max.   :73.5903 |Max.   :0    |
+|   |(Other)   :55 |NA's   :8     |NA's   :8       |NA's   :8    |
+
 ## What is the average daily activity pattern?
 _Create a dataframe with steps per interval, and plot the line._
 
@@ -363,7 +405,7 @@ ggplot(intervalSteps, aes(x = time, y = steps)) +
      theme(plot.title = element_text(hjust = 0.5))
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
+![](PA1_template_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
 
 ```r
 dev.copy(png, "plots/04-intervalSteps.png")
@@ -398,7 +440,7 @@ averageSteps  <- intervalSteps[which.max(intervalSteps$steps), 2]
 ```
 Since the steps from interval 0 to interval 600 are mostly zero, I'm betting that the measurements start midnight. If they don't, I'm screwed. Or not, maybe just have to make adjustments in the conversions.
 
-What I'm fairly sure of is that the intervals are of the form `hhmm`, where hh and mm are the hour and minute components of the interval. As evidence, `interval` on the 24th row is 155, and on the 25th is 200. Examine the 36th and 37th rows, and `interval` goes from 255 to 300. Where are 160, 165,…, between 15 and 200, or 260, 265,…, between 255 and 300? First, 160 is equivalent to 200, and 260 to 300. That's further evidence that the `interval`s *are* time stamps, of the form `hhmm`.
+What I'm fairly sure of is that the intervals are of the form `hhmm`, where `hh` and `mm` are the hour and minute components, respectively, of the interval. As evidence, `interval` on the 24th row is 155, and on the 25th is 200. Examine the 36th and 37th rows, and `interval` goes from 255 to 300. Where are 160, 165,…, between 15 and 200, or 260, 265,…, between 255 and 300? First, 160 is equivalent to 200, and 260 to 300. That's further evidence that the `interval`s *are* time stamps, of the form `hhmm`.
 
 Output will be in 24-hour format.
 
@@ -411,5 +453,128 @@ sprintf("Maximum number of steps on average taken from %s to %s, number of steps
 ## [1] "Maximum number of steps on average taken from 08:35 to 08:40, number of steps = 206.169811"
 ```
 ## Imputing missing values
+First question: how many missing values are there?
+
+```r
+missing <- is.na(activity$steps)
+sprintf("Number of missing steps: %s.", f_comma(sum(missing), mark = ","))
+```
+
+```
+## [1] "Number of missing steps: 2,304."
+```
+
+```r
+sprintf("Mean: %s.", mean(missing))
+```
+
+```
+## [1] "Mean: 0.131147540983607."
+```
+So, do those 2,304 `NA`s make a difference? Let's find out.
+
+Define a helper function `fillNA`.
+
++---------------+-----------------------------------------------------+
+| Parameter     | Description                                         |
++===============+=====================================================+
+| steps         | Cell to be converted, if `NA`, to the average number of steps for `interval` (second parameter)           |
++---------------+-----------------------------------------------------+
+| interval      | Identifier for the five-minute interval from which to get the mean number of steps. The function will match  `intervalSteps$interval` with the parameter `interval`, and return the average steps if the `steps` parameter is `NA`                              |
++---------------+-----------------------------------------------------+
+
+```r
+fillNA <- function(steps, interval) {
+  return(ifelse 
+         (!is.na(steps), steps,
+           intervalSteps[intervalSteps$interval == interval, "steps"]))
+}
+```
+Make a copy of `activity`, then apply `fillNA` to that copy.
+
+```r
+adjActivity       <- activity
+adjActivity$steps <- mapply(fillNA, 
+                            adjActivity$steps, 
+                            adjActivity$interval)
+```
+Set up the plot, then plot it.
+
+```r
+adjSteps <- aggregate(steps ~ date, data = adjActivity, mean)
+with(adjSteps, 
+     barplot(space = 0, steps, 
+             main  = "Average Number of Steps per Day, NA imputed",
+             xlab  = "Day", ylab = "Average Steps", 
+             names.arg = (as.Date(date) - as.Date(date[1]) + 1)))
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
+
+```r
+dev.copy(png, "plots/05-imputedSteps.png")
+```
+
+```
+## png 
+##   3
+```
+Compare that with the plot of Average Number of Steps per Day, without imputing `NA`s:
+
+```r
+knitr::include_graphics("plots/02-meanSteps.png")
+```
+
+<img src="plots/02-meanSteps.png" width="400px" />
+
+Without the imputed data, average steps for days 1, 8, 32, 35, 40, 41, 45, and 61 are zero because of the `NA` steps for those days. Imputing creates data points that look reasonable, consistent in height with the other data points.
+
+Meanwhile, the heights for the other days don't show any appreciable change.
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+Create a new Boolean column that determines whether the day is a weekday or weekend.
+
+```r
+adjActivity$is.Weekday <- timeDate::isWeekday(adjActivity$date)
+```
+
+Take the mean number of steps per interval broken down into `is.Weekday` and `!is.Weekday`
+
+```r
+stepsPerInterval <- aggregate(steps ~ interval + is.Weekday, data = adjActivity, mean)
+```
+
+Use the `interval` column to create a `time` column.
+
+```r
+stepsPerInterval$time <- as.POSIXct(int2Time(intervalSteps$interval), format = "%H:%M", tz = "MST")
+```
+
+Map the `is.Weekday` column to the more readable "Weekend" and "Weekday".
+
+```r
+is.Weekday.labs <- as_labeller(c("FALSE" = "Weekend", "TRUE" = "Weekday"))
+ggplot(stepsPerInterval, aes(time, steps, col = factor(is.Weekday))) +
+  facet_wrap(.~factor(is.Weekday), dir = "v", 
+             labeller = is.Weekday.labs) +
+  geom_line(show.legend = FALSE) +
+  labs(x = "Time of day", y = "Steps") +
+  labs(title = "Time Series Plot Comparison of Steps") +
+  scale_x_datetime(labels = date_format("%H:%M", tz = "MST"), date_breaks = "2 hours") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-25-1.png)<!-- -->
+
+```r
+dev.copy(png, "plots/06-WkDayVsWkEnd.png")
+```
+
+```
+## png 
+##   4
+```
+The plot tells us that on both weekends and weekdays, the subjects are on average inactive, possibly asleep, from midnight to 5:30 in the morning. However, inactivity on weekends stretches to about 8:00 AM, whereas the subjects start moving about 5:30 AM on weekdays. Activity on both weekends and weekdays spike at 9:00 AM, although to a lesser extent for the former.
+
+Oddly, activity from 10:00 AM all the way to 5:30 PM is heavier on weekends, then wane at 11:00 PM for both weekends and weekdays.

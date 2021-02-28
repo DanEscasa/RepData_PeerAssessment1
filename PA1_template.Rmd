@@ -2,13 +2,13 @@
 title: 'Reproducible Research: Activity Monitoring'
 author: "Daniel Escasa"
 output:
-  pdf_document: 
-    toc: true
-    number_sections: true
   html_document:
     toc: true
     number_sections: yes
     keep_md: yes
+  pdf_document: 
+    toc: true
+    number_sections: true
 editor_options:
   markdown:
     wrap: 72
@@ -337,3 +337,9 @@ Oddly, activity from 10:00 AM all the way to 5:30 PM is heavier on weekends, the
 The YAML of this document instructs `knitr` to produce both a PDF and an HTML. From the command line, you can issue the command:
 `R -e "rmarkdown::render('PA1_template.Rmd')"` no matter your OS. You can also render it using the `Knit` button (where's the fun in that) or the R console, with the command `rmarkdown::render('PA1_template.Rmd')`.
 
+<<<<<<< HEAD
+||||||| merged common ancestors
+Oddly, activity from 10:00 AM all the way to 5:30 PM is heavier on weekdays, then wane at 11:00 PM for both weekends and weekdays.
+=======
+Oddly, activity from 10:00 AM all the way to 5:30 PM is heavier on weekends, then wane at 11:00 PM for both weekends and weekdays.
+>>>>>>> f617e3e72bd45b6fa8156492eb587faf1fd57f26
