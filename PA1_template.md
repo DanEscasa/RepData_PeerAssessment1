@@ -1,6 +1,7 @@
 ---
 title: 'Reproducible Research: Activity Monitoring'
 author: "Daniel Escasa"
+date: 2021-March-01
 output:
   html_document:
     toc: true
@@ -123,6 +124,40 @@ if (!require("timeDate")) {
 ## Loading required package: timeDate
 ```
 
+```r
+if (!require("dplyr")) {
+  message("Installing dplyr")
+  install.packages("dplyr")
+}
+```
+
+```
+## Loading required package: dplyr
+```
+
+```
+## 
+## Attaching package: 'dplyr'
+```
+
+```
+## The following object is masked from 'package:numform':
+## 
+##     collapse
+```
+
+```
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+```
+
+```
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+```
+
 ## Download the zipped dataset if not yet present
 
 
@@ -161,38 +196,39 @@ library(knitr)
 library(scales)
 library(numform)
 library(timeDate)
+library(dplyr)
 ```
 
 # Now let's get cooking
 
 ## What is mean total number of steps taken per day?
-Compute the total number, mean, and median steps per day.
+Compute the total number, mean, and median steps per day. Build a `dayStats` dataframe by starting with the aggregate of `steps`, `by = list(date)`, and `FUN = sum`, then merging with aggregates with `FUN = mean` and `FUN = median`.
+
 As an aside, take note of the use of the superassignment (`<<-`) instead of the usual assignment operator (`<-`). This is because the `with(){}` creates its own scope.
 
 ```r
 with(data = activity,{
-     totalDaySteps  <<- aggregate(steps, by = list(date), FUN = sum)
-     meanDaySteps   <<- aggregate(steps, by = list(date), FUN = mean)
-     medianDaySteps <<- aggregate(steps, by = list(date), FUN = median)
+     dayStats <<- aggregate(steps, by = list(date), FUN = sum)
+     dayStats <<- merge(dayStats, 
+                        aggregate(steps, by = list(date), FUN = mean), by = "Group.1")
+     dayStats <<- merge(dayStats, 
+                        aggregate(steps, by = list(date), FUN = median), by = "Group.1")
 })
 ```
-For convenience, merge the three into one dataframe and assign meaningful `colnames()`.
-
+Give the columns meaningful names
 
 ```r
-dayStats <- merge(totalDaySteps, meanDaySteps, by = "Group.1")
-dayStats <- merge(dayStats, medianDaySteps, by = "Group.1")
 colnames(dayStats) <- c("date", "totalSteps", "meanSteps", "medianSteps")
 ```
 
-Plot total number of steps taken each day, telling `barplot()` to remove spaces between bars. Also, using `(as.Date(date) - as.Date(totalDaySteps[1, 1]) + 1)` as `names.arg` so labels on x axis are day numbers, not the dates. This is so the plot is neater.
+Plot total number of steps taken each day, telling `barplot()` to remove spaces between bars. Also, using `(as.Date(date) - as.Date(dayStats[1, 1]) + 1)` as `names.arg` so labels on x axis are day numbers, not the dates. This is so the plot is neater.
 
 ```r
 with(dayStats,
      barplot(space = 0, totalSteps,
              main  = "Total Number of Steps per Day",
              xlab  = "Day", ylab = "Total Steps", 
-             names.arg = (as.Date(date) - as.Date(totalDaySteps[1, 1]) + 1)))
+             names.arg = (as.Date(date) - as.Date(dayStats[1, 1]) + 1)))
 ```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
@@ -222,7 +258,7 @@ with(dayStats,
      barplot(space = 0, meanSteps, 
              main  = "Average Number of Steps per Day",
              xlab  = "Day", ylab = "Average Steps", 
-             names.arg = (as.Date(date) - as.Date(totalDaySteps[1, 1]) + 1)))
+             names.arg = (as.Date(date) - as.Date(dayStats[1, 1]) + 1)))
 ```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
@@ -245,11 +281,10 @@ dev.off()
 ##   2
 ```
 
-
 And here's the dataframe of average number of steps per day:
 
 ```r
-kable(dayStats[, c(1, 3)],
+knitr::kable(dayStats[, c(1, 3)],
       col.names = c("date", "mean"))
 ```
 
@@ -319,44 +354,10 @@ kable(dayStats[, c(1, 3)],
 |2012-11-29 | 24.4687500|
 |2012-11-30 |         NA|
 
-Lastly, plot the median number of steps per day.
+The `summary()` function will also give us the mean and median, plus other stats:
 
 ```r
-with(dayStats, 
-     barplot(space = 0, medianSteps, 
-             main  = "Median Number of Steps per Day",
-             xlab  = "Day", ylab = "Median Steps", 
-             names.arg = (as.Date(date) - as.Date(totalDaySteps[1, 1]) + 1)))
-```
-
-![](PA1_template_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
-
-```r
-dev.copy(png, "plots/03-medianSteps.png")
-```
-
-```
-## png 
-##   3
-```
-
-```r
-dev.off()
-```
-
-```
-## png 
-##   2
-```
-
-Median is zero because of the large number of zero `steps` — after all, `steps` is mostly zero, save for an outlier or two, for `interval` from 0 to 530. `NA`s may also account for that.
-
-Since the median is zero for all days, there's no point in presenting the dataframe.
-
-The `summary()` function will also give us similar info:
-
-```r
-kable(summary(dayStats))
+knitr::kable(summary(dayStats))
 ```
 
 
@@ -370,6 +371,8 @@ kable(summary(dayStats))
 |   |2012-10-05: 1 |3rd Qu.:13294 |3rd Qu.:46.1597 |3rd Qu.:0    |
 |   |2012-10-06: 1 |Max.   :21194 |Max.   :73.5903 |Max.   :0    |
 |   |(Other)   :55 |NA's   :8     |NA's   :8       |NA's   :8    |
+
+`medianSteps` is zero because of the large number of zeroes in that column, mostly from `interval` = c(0, 530). `NA`s may also account for that. Since the median is zero, there's no point in drawing a boring plot with a vertical line at `y = 0`, save for blanks for columns with only `NA`s.
 
 ## What is the average daily activity pattern?
 _Create a dataframe with steps per interval, and plot the line._
@@ -391,6 +394,29 @@ int2Time <- function(hhmm) {
                    substring(paste0("0", startMin), nchar(startMin))))
 }
 ```
+Since the steps from interval 0 to interval 600 are mostly zero, I'm betting that the measurements start midnight. If they don't, I'm screwed. Or not, maybe just have to make adjustments in the conversions.
+
+What I'm fairly sure of is that the intervals are of the form `hhmm`, where `hh` and `mm` are the hour and minute components, respectively, of the interval. As evidence, let's examine a the subset of `intervalSteps` where the `interval` is an exact multiple of 100 <strong>or</strong> congruent to 55 modulo 100:
+
+```r
+knitr::kable(head(subset(activity, interval %% 100 %in% c(0, 55))))
+```
+
+
+
+|   | steps|date       | interval|
+|:--|-----:|:----------|--------:|
+|1  |    NA|2012-10-01 |        0|
+|12 |    NA|2012-10-01 |       55|
+|13 |    NA|2012-10-01 |      100|
+|24 |    NA|2012-10-01 |      155|
+|25 |    NA|2012-10-01 |      200|
+|36 |    NA|2012-10-01 |      255|
+Note that two succeeding rows number are congruent to 0 mod 12 and 1 mod 12, respectively. Why 12? Intervals are five minutes apart. One hour is 60 minutes, and sixty divided by 5 is 12. Then, the next column jumps to the next hundred. 
+
+However, the more interesting pattern to look at is `intervalSteps[c(12, 13),]` or, in general, `intervalSteps[x, (x + 1), ]` where `x >= 12`. Note that `intervalSteps[c(x, x + 1), ]$interval = (i1, i2)`, and `i1` is congruent to 55 mod 100, i2 is congruent to 0 mod 100.
+
+That out of the way, let's get back to the questions at hand.
 Average the number of steps over each five-minute interval and plot the time series.
 
 ```r
@@ -425,7 +451,7 @@ dev.off()
 ##   2
 ```
 
-So, from the plot, on average there is negligible activity from midnight (see below) to around 5:30 in the morning, slowly climbing at around 7:00, and a spike of over 200 steps at around 8:30.
+So, from the plot, on average there is negligible activity from midnight to around 5:30 in the morning, slowly climbing at around 7:00, and a spike of over 200 steps at around 8:30.
 
 From then on, there is a minimum of 25 to a maximum of 100 steps, and activity dies down starting close to 11:30 PM.
 
@@ -438,11 +464,8 @@ intervalStart <- intervalSteps[which.max(intervalSteps$steps), 1]
 intervalEnd   <- intervalSteps[which.max(intervalSteps$steps), 1] + 5
 averageSteps  <- intervalSteps[which.max(intervalSteps$steps), 2]
 ```
-Since the steps from interval 0 to interval 600 are mostly zero, I'm betting that the measurements start midnight. If they don't, I'm screwed. Or not, maybe just have to make adjustments in the conversions.
 
-What I'm fairly sure of is that the intervals are of the form `hhmm`, where `hh` and `mm` are the hour and minute components, respectively, of the interval. As evidence, `interval` on the 24th row is 155, and on the 25th is 200. Examine the 36th and 37th rows, and `interval` goes from 255 to 300. Where are 160, 165,…, between 15 and 200, or 260, 265,…, between 255 and 300? First, 160 is equivalent to 200, and 260 to 300. That's further evidence that the `interval`s *are* time stamps, of the form `hhmm`.
-
-Output will be in 24-hour format.
+The start and end of the interval will be in 24-hour format.
 
 ```r
 sprintf("Maximum number of steps on average taken from %s to %s, number of steps = %f",
@@ -490,13 +513,11 @@ fillNA <- function(steps, interval) {
            intervalSteps[intervalSteps$interval == interval, "steps"]))
 }
 ```
-Make a copy of `activity`, then apply `fillNA` to that copy.
+Make a copy of `activity`, then use `mutate()` to create a `steps` column using `fillNA`. Although the `mutate()` is applied to `activity`, the result is assigned to `adjActivity`, so the former is still intact.
 
 ```r
-adjActivity       <- activity
-adjActivity$steps <- mapply(fillNA, 
-                            adjActivity$steps, 
-                            adjActivity$interval)
+adjActivity <- activity %>%
+  mutate(steps = fillNA(steps, interval))
 ```
 Set up the plot, then plot it.
 
@@ -551,7 +572,7 @@ Use the `interval` column to create a `time` column.
 stepsPerInterval$time <- as.POSIXct(int2Time(intervalSteps$interval), format = "%H:%M", tz = "MST")
 ```
 
-Map the `is.Weekday` column to the more readable "Weekend" and "Weekday".
+Map the `is.Weekday` column to the more readable "Weekend" and "Weekday", then create the plot.
 
 ```r
 is.Weekday.labs <- as_labeller(c("FALSE" = "Weekend", "TRUE" = "Weekday"))
@@ -575,6 +596,11 @@ dev.copy(png, "plots/06-WkDayVsWkEnd.png")
 ## png 
 ##   4
 ```
-The plot tells us that on both weekends and weekdays, the subjects are on average inactive, possibly asleep, from midnight to 5:30 in the morning. However, inactivity on weekends stretches to about 8:00 AM, whereas the subjects start moving about 5:30 AM on weekdays. Activity on both weekends and weekdays spike at 9:00 AM, although to a lesser extent for the former.
+The plot tells us that on both weekends and weekdays, the subject is on average inactive, possibly asleep, from midnight to 5:30 in the morning. However, inactivity on weekends stretches to about 8:00 AM, whereas the subject starts moving about 5:30 AM on weekdays. Activity on both weekends and weekdays spikes at 9:00 AM, although to a lesser extent for the former.
 
-Oddly, activity from 10:00 AM all the way to 5:30 PM is heavier on weekends, then wane at 11:00 PM for both weekends and weekdays.
+Oddly, activity from 10:00 AM all the way to 5:30 PM is heavier on weekends, then wanes at 11:00 PM for both weekends and weekdays. The subject is probably at a desk, maybe at school or at work, at those times during weekdays, and outdoors, possibly at the mall, on weekends.
+
+## Recreating this PDF or HTML
+
+The YAML of this document instructs `knitr` to produce both a PDF and an HTML. From the command line, you can issue the command:
+`R -e "rmarkdown::render('PA1_template.Rmd')"` no matter your Operating System. You can also render it using the RStudio `Knit` button (where's the fun in that?) or the R console, with the command `rmarkdown::render('PA1_template.Rmd')`.

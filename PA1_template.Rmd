@@ -1,14 +1,15 @@
 ---
 title: 'Reproducible Research: Activity Monitoring'
 author: "Daniel Escasa"
+date: 2021-March-01
 output:
+  pdf_document: 
+    toc: true
+    number_sections: true
   html_document:
     toc: true
     number_sections: yes
     keep_md: yes
-  pdf_document: 
-    toc: true
-    number_sections: true
 editor_options:
   markdown:
     wrap: 72
@@ -140,8 +141,10 @@ As an aside, take note of the use of the superassignment (`<<-`) instead of the 
 ```{r}
 with(data = activity,{
      dayStats <<- aggregate(steps, by = list(date), FUN = sum)
-     dayStats <<- merge(dayStats, aggregate(steps, by = list(date), FUN = mean), by = "Group.1")
-     dayStats <<- merge(dayStats, aggregate(steps, by = list(date), FUN = median), by = "Group.1")
+     dayStats <<- merge(dayStats, 
+                        aggregate(steps, by = list(date), FUN = mean), by = "Group.1")
+     dayStats <<- merge(dayStats, 
+                        aggregate(steps, by = list(date), FUN = median), by = "Group.1")
 })
 ```
 Give the columns meaningful names
@@ -173,13 +176,13 @@ dev.off()
 
 And here's the dataframe of average number of steps per day:
 ```{r}
-kable(dayStats[, c(1, 3)],
+knitr::kable(dayStats[, c(1, 3)],
       col.names = c("date", "mean"))
 ```
 
 The `summary()` function will also give us the mean and median, plus other stats:
 ```{r}
-kable(summary(dayStats))
+knitr::kable(summary(dayStats))
 ```
 
 `medianSteps` is zero because of the large number of zeroes in that column, mostly from `interval` = c(0, 530). `NA`s may also account for that. Since the median is zero, there's no point in drawing a boring plot with a vertical line at `y = 0`, save for blanks for columns with only `NA`s.
@@ -203,6 +206,17 @@ int2Time <- function(hhmm) {
                    substring(paste0("0", startMin), nchar(startMin))))
 }
 ```
+Since the steps from interval 0 to interval 600 are mostly zero, I'm betting that the measurements start midnight. If they don't, I'm screwed. Or not, maybe just have to make adjustments in the conversions.
+
+What I'm fairly sure of is that the intervals are of the form `hhmm`, where `hh` and `mm` are the hour and minute components, respectively, of the interval. As evidence, let's examine a the subset of `intervalSteps` where the `interval` is an exact multiple of 100 <strong>or</strong> congruent to 55 modulo 100:
+```{r}
+knitr::kable(head(subset(activity, interval %% 100 %in% c(0, 55))))
+```
+Note that two succeeding rows number are congruent to 0 mod 12 and 1 mod 12, respectively. Why 12? Intervals are five minutes apart. One hour is 60 minutes, and sixty divided by 5 is `r 60 / 5`. Then, the next column jumps to the next hundred. 
+
+However, the more interesting pattern to look at is `intervalSteps[c(12, 13),]` or, in general, `intervalSteps[x, (x + 1), ]` where `x >= 12`. Note that `intervalSteps[c(x, x + 1), ]$interval = (i1, i2)`, and `i1` is congruent to 55 mod 100, i2 is congruent to 0 mod 100.
+
+That out of the way, let's get back to the questions at hand.
 Average the number of steps over each five-minute interval and plot the time series.
 ```{r}
 intervalSteps <- aggregate(steps ~ interval, data = activity, mean)
@@ -218,7 +232,7 @@ dev.copy(png, "plots/04-intervalSteps.png")
 dev.off()
 ```
 
-So, from the plot, on average there is negligible activity from midnight (see below) to around 5:30 in the morning, slowly climbing at around 7:00, and a spike of over 200 steps at around 8:30.
+So, from the plot, on average there is negligible activity from midnight to around 5:30 in the morning, slowly climbing at around 7:00, and a spike of over 200 steps at around 8:30.
 
 From then on, there is a minimum of 25 to a maximum of 100 steps, and activity dies down starting close to 11:30 PM.
 
@@ -230,17 +244,6 @@ intervalStart <- intervalSteps[which.max(intervalSteps$steps), 1]
 intervalEnd   <- intervalSteps[which.max(intervalSteps$steps), 1] + 5
 averageSteps  <- intervalSteps[which.max(intervalSteps$steps), 2]
 ```
-Since the steps from interval 0 to interval 600 are mostly zero, I'm betting that the measurements start midnight. If they don't, I'm screwed. Or not, maybe just have to make adjustments in the conversions.
-
-What I'm fairly sure of is that the intervals are of the form `hhmm`, where `hh` and `mm` are the hour and minute components, respectively, of the interval. As evidence, let's examine a the subset of `intervalSteps` where the `interval` is an exact multiple of 100 <strong>or</strong> congruent to 55 modulo 100:
-```{r}
-kable(subset(intervalSteps, interval %% 100 %in% c(0, 55)))
-```
-Note that two succeeding rows number are congruent to 0 mod 12 and 1 mod 12, respectively. Why 12? Intervals are five minutes apart. One hour is 60 minutes, and sixty divided by 5 is `r 60 / 5`. Then, the next column jumps to the next hundred. 
-
-However, the more interesting pattern to look at is `intervalSteps[c(12, 13),]` or, in general, `intervalSteps[c(x, x + 1), ]` where `x >= 12`. Note that `intervalSteps[c(x, x + 1), ]$interval = (i1, i2)`, and `i1` is congruent to 55 mod 100, i2 is congruent to 0 mod 100.
-
-That out of the way, let's get back to the questions at hand.
 
 The start and end of the interval will be in 24-hour format.
 ```{r}
@@ -313,7 +316,7 @@ Use the `interval` column to create a `time` column.
 stepsPerInterval$time <- as.POSIXct(int2Time(intervalSteps$interval), format = "%H:%M", tz = "MST")
 ```
 
-Map the `is.Weekday` column to the more readable "Weekend" and "Weekday".
+Map the `is.Weekday` column to the more readable "Weekend" and "Weekday", then create the plot.
 ```{r}
 is.Weekday.labs <- as_labeller(c("FALSE" = "Weekend", "TRUE" = "Weekday"))
 ggplot(stepsPerInterval, aes(time, steps, col = factor(is.Weekday))) +
@@ -328,18 +331,11 @@ ggplot(stepsPerInterval, aes(time, steps, col = factor(is.Weekday))) +
 dev.copy(png, "plots/06-WkDayVsWkEnd.png")
 
 ```
-The plot tells us that on both weekends and weekdays, the subject is on average inactive, possibly asleep, from midnight to 5:30 in the morning. However, inactivity on weekends stretches to about 8:00 AM, whereas the subject starts moving about 5:30 AM on weekdays. Activity on both weekends and weekdays spike at 9:00 AM, although to a lesser extent for the former.
+The plot tells us that on both weekends and weekdays, the subject is on average inactive, possibly asleep, from midnight to 5:30 in the morning. However, inactivity on weekends stretches to about 8:00 AM, whereas the subject starts moving about 5:30 AM on weekdays. Activity on both weekends and weekdays spikes at 9:00 AM, although to a lesser extent for the former.
 
-Oddly, activity from 10:00 AM all the way to 5:30 PM is heavier on weekends, then wane at 11:00 PM for both weekends and weekdays.
+Oddly, activity from 10:00 AM all the way to 5:30 PM is heavier on weekends, then wanes at 11:00 PM for both weekends and weekdays. The subject is probably at a desk, maybe at school or at work, at those times during weekdays, and outdoors, possibly at the mall, on weekends.
 
-## Reproducing this PDF or HTML
+## Recreating this PDF or HTML
 
 The YAML of this document instructs `knitr` to produce both a PDF and an HTML. From the command line, you can issue the command:
-`R -e "rmarkdown::render('PA1_template.Rmd')"` no matter your OS. You can also render it using the `Knit` button (where's the fun in that) or the R console, with the command `rmarkdown::render('PA1_template.Rmd')`.
-
-<<<<<<< HEAD
-||||||| merged common ancestors
-Oddly, activity from 10:00 AM all the way to 5:30 PM is heavier on weekdays, then wane at 11:00 PM for both weekends and weekdays.
-=======
-Oddly, activity from 10:00 AM all the way to 5:30 PM is heavier on weekends, then wane at 11:00 PM for both weekends and weekdays.
->>>>>>> f617e3e72bd45b6fa8156492eb587faf1fd57f26
+`R -e "rmarkdown::render('PA1_template.Rmd')"` no matter your Operating System. You can also render it using the RStudio `Knit` button (where's the fun in that?) or the R console, with the command `rmarkdown::render('PA1_template.Rmd')`.
