@@ -369,7 +369,11 @@ pre code {
 <li><a href="#what-is-the-average-daily-activity-pattern"><span class="toc-section-number">2.2</span> What is the average daily activity pattern?</a></li>
 <li><a href="#imputing-missing-values"><span class="toc-section-number">2.3</span> Imputing missing values</a></li>
 <li><a href="#are-there-differences-in-activity-patterns-between-weekdays-and-weekends"><span class="toc-section-number">2.4</span> Are there differences in activity patterns between weekdays and weekends?</a></li>
+<<<<<<< HEAD
 <li><a href="#recreating-this-pdf-or-html"><span class="toc-section-number">2.5</span> Recreating this PDF or HTML</a></li>
+=======
+<li><a href="#reproducing-this-pdf-or-html"><span class="toc-section-number">2.5</span> Reproducing this PDF or HTML</a></li>
+>>>>>>> 15e8c72f82636280b13416e04b221061ce88eefc
 </ul></li>
 </ul>
 </div>
@@ -501,10 +505,15 @@ library(dplyr)</code></pre>
 <p>As an aside, take note of the use of the superassignment (<code>&lt;&lt;-</code>) instead of the usual assignment operator (<code>&lt;-</code>). This is because the <code>with(){}</code> creates its own scope.</p>
 <pre class="r"><code>with(data = activity,{
      dayStats &lt;&lt;- aggregate(steps, by = list(date), FUN = sum)
+<<<<<<< HEAD
      dayStats &lt;&lt;- merge(dayStats, 
                         aggregate(steps, by = list(date), FUN = mean), by = &quot;Group.1&quot;)
      dayStats &lt;&lt;- merge(dayStats, 
                         aggregate(steps, by = list(date), FUN = median), by = &quot;Group.1&quot;)
+=======
+     dayStats &lt;&lt;- merge(dayStats, aggregate(steps, by = list(date), FUN = mean), by = &quot;Group.1&quot;)
+     dayStats &lt;&lt;- merge(dayStats, aggregate(steps, by = list(date), FUN = median), by = &quot;Group.1&quot;)
+>>>>>>> 15e8c72f82636280b13416e04b221061ce88eefc
 })</code></pre>
 <p>Give the columns meaningful names</p>
 <pre class="r"><code>colnames(dayStats) &lt;- c(&quot;date&quot;, &quot;totalSteps&quot;, &quot;meanSteps&quot;, &quot;medianSteps&quot;)</code></pre>
@@ -792,7 +801,11 @@ library(dplyr)</code></pre>
 </tbody>
 </table>
 <p>The <code>summary()</code> function will also give us the mean and median, plus other stats:</p>
+<<<<<<< HEAD
 <pre class="r"><code>knitr::kable(summary(dayStats))</code></pre>
+=======
+<pre class="r"><code>kable(summary(dayStats))</code></pre>
+>>>>>>> 15e8c72f82636280b13416e04b221061ce88eefc
 <table>
 <thead>
 <tr class="header">
@@ -951,6 +964,315 @@ ggplot(intervalSteps, aes(x = time, y = steps)) +
 <pre class="r"><code>intervalStart &lt;- intervalSteps[which.max(intervalSteps$steps), 1]
 intervalEnd   &lt;- intervalSteps[which.max(intervalSteps$steps), 1] + 5
 averageSteps  &lt;- intervalSteps[which.max(intervalSteps$steps), 2]</code></pre>
+<<<<<<< HEAD
+=======
+<p>Since the steps from interval 0 to interval 600 are mostly zero, I’m betting that the measurements start midnight. If they don’t, I’m screwed. Or not, maybe just have to make adjustments in the conversions.</p>
+<p>What I’m fairly sure of is that the intervals are of the form <code>hhmm</code>, where <code>hh</code> and <code>mm</code> are the hour and minute components, respectively, of the interval. As evidence, let’s examine a the subset of <code>intervalSteps</code> where the <code>interval</code> is an exact multiple of 100 <strong>or</strong> congruent to 55 modulo 100:</p>
+<pre class="r"><code>kable(subset(intervalSteps, interval %% 100 %in% c(0, 55)))</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">interval</th>
+<th align="right">steps</th>
+<th align="left">time</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">1</td>
+<td align="right">0</td>
+<td align="right">1.7169811</td>
+<td align="left">2021-02-28 00:00:00</td>
+</tr>
+<tr class="even">
+<td align="left">12</td>
+<td align="right">55</td>
+<td align="right">0.1320755</td>
+<td align="left">2021-02-28 00:55:00</td>
+</tr>
+<tr class="odd">
+<td align="left">13</td>
+<td align="right">100</td>
+<td align="right">0.3207547</td>
+<td align="left">2021-02-28 01:00:00</td>
+</tr>
+<tr class="even">
+<td align="left">24</td>
+<td align="right">155</td>
+<td align="right">0.0000000</td>
+<td align="left">2021-02-28 01:55:00</td>
+</tr>
+<tr class="odd">
+<td align="left">25</td>
+<td align="right">200</td>
+<td align="right">0.0000000</td>
+<td align="left">2021-02-28 02:00:00</td>
+</tr>
+<tr class="even">
+<td align="left">36</td>
+<td align="right">255</td>
+<td align="right">0.9433962</td>
+<td align="left">2021-02-28 02:55:00</td>
+</tr>
+<tr class="odd">
+<td align="left">37</td>
+<td align="right">300</td>
+<td align="right">0.0000000</td>
+<td align="left">2021-02-28 03:00:00</td>
+</tr>
+<tr class="even">
+<td align="left">48</td>
+<td align="right">355</td>
+<td align="right">0.0000000</td>
+<td align="left">2021-02-28 03:55:00</td>
+</tr>
+<tr class="odd">
+<td align="left">49</td>
+<td align="right">400</td>
+<td align="right">1.1886792</td>
+<td align="left">2021-02-28 04:00:00</td>
+</tr>
+<tr class="even">
+<td align="left">60</td>
+<td align="right">455</td>
+<td align="right">1.1132075</td>
+<td align="left">2021-02-28 04:55:00</td>
+</tr>
+<tr class="odd">
+<td align="left">61</td>
+<td align="right">500</td>
+<td align="right">0.0000000</td>
+<td align="left">2021-02-28 05:00:00</td>
+</tr>
+<tr class="even">
+<td align="left">72</td>
+<td align="right">555</td>
+<td align="right">44.4905660</td>
+<td align="left">2021-02-28 05:55:00</td>
+</tr>
+<tr class="odd">
+<td align="left">73</td>
+<td align="right">600</td>
+<td align="right">31.4905660</td>
+<td align="left">2021-02-28 06:00:00</td>
+</tr>
+<tr class="even">
+<td align="left">84</td>
+<td align="right">655</td>
+<td align="right">49.0377358</td>
+<td align="left">2021-02-28 06:55:00</td>
+</tr>
+<tr class="odd">
+<td align="left">85</td>
+<td align="right">700</td>
+<td align="right">43.8113208</td>
+<td align="left">2021-02-28 07:00:00</td>
+</tr>
+<tr class="even">
+<td align="left">96</td>
+<td align="right">755</td>
+<td align="right">56.1509434</td>
+<td align="left">2021-02-28 07:55:00</td>
+</tr>
+<tr class="odd">
+<td align="left">97</td>
+<td align="right">800</td>
+<td align="right">73.3773585</td>
+<td align="left">2021-02-28 08:00:00</td>
+</tr>
+<tr class="even">
+<td align="left">108</td>
+<td align="right">855</td>
+<td align="right">167.0188679</td>
+<td align="left">2021-02-28 08:55:00</td>
+</tr>
+<tr class="odd">
+<td align="left">109</td>
+<td align="right">900</td>
+<td align="right">143.4528302</td>
+<td align="left">2021-02-28 09:00:00</td>
+</tr>
+<tr class="even">
+<td align="left">120</td>
+<td align="right">955</td>
+<td align="right">21.0566038</td>
+<td align="left">2021-02-28 09:55:00</td>
+</tr>
+<tr class="odd">
+<td align="left">121</td>
+<td align="right">1000</td>
+<td align="right">40.5660377</td>
+<td align="left">2021-02-28 10:00:00</td>
+</tr>
+<tr class="even">
+<td align="left">132</td>
+<td align="right">1055</td>
+<td align="right">31.9433962</td>
+<td align="left">2021-02-28 10:55:00</td>
+</tr>
+<tr class="odd">
+<td align="left">133</td>
+<td align="right">1100</td>
+<td align="right">31.3584906</td>
+<td align="left">2021-02-28 11:00:00</td>
+</tr>
+<tr class="even">
+<td align="left">144</td>
+<td align="right">1155</td>
+<td align="right">59.1886792</td>
+<td align="left">2021-02-28 11:55:00</td>
+</tr>
+<tr class="odd">
+<td align="left">145</td>
+<td align="right">1200</td>
+<td align="right">63.8679245</td>
+<td align="left">2021-02-28 12:00:00</td>
+</tr>
+<tr class="even">
+<td align="left">156</td>
+<td align="right">1255</td>
+<td align="right">67.2830189</td>
+<td align="left">2021-02-28 12:55:00</td>
+</tr>
+<tr class="odd">
+<td align="left">157</td>
+<td align="right">1300</td>
+<td align="right">42.3396226</td>
+<td align="left">2021-02-28 13:00:00</td>
+</tr>
+<tr class="even">
+<td align="left">168</td>
+<td align="right">1355</td>
+<td align="right">60.8113208</td>
+<td align="left">2021-02-28 13:55:00</td>
+</tr>
+<tr class="odd">
+<td align="left">169</td>
+<td align="right">1400</td>
+<td align="right">55.7547170</td>
+<td align="left">2021-02-28 14:00:00</td>
+</tr>
+<tr class="even">
+<td align="left">180</td>
+<td align="right">1455</td>
+<td align="right">43.7735849</td>
+<td align="left">2021-02-28 14:55:00</td>
+</tr>
+<tr class="odd">
+<td align="left">181</td>
+<td align="right">1500</td>
+<td align="right">30.0188679</td>
+<td align="left">2021-02-28 15:00:00</td>
+</tr>
+<tr class="even">
+<td align="left">192</td>
+<td align="right">1555</td>
+<td align="right">83.9622642</td>
+<td align="left">2021-02-28 15:55:00</td>
+</tr>
+<tr class="odd">
+<td align="left">193</td>
+<td align="right">1600</td>
+<td align="right">62.1320755</td>
+<td align="left">2021-02-28 16:00:00</td>
+</tr>
+<tr class="even">
+<td align="left">204</td>
+<td align="right">1655</td>
+<td align="right">43.6792453</td>
+<td align="left">2021-02-28 16:55:00</td>
+</tr>
+<tr class="odd">
+<td align="left">205</td>
+<td align="right">1700</td>
+<td align="right">46.6226415</td>
+<td align="left">2021-02-28 17:00:00</td>
+</tr>
+<tr class="even">
+<td align="left">216</td>
+<td align="right">1755</td>
+<td align="right">37.4528302</td>
+<td align="left">2021-02-28 17:55:00</td>
+</tr>
+<tr class="odd">
+<td align="left">217</td>
+<td align="right">1800</td>
+<td align="right">40.6792453</td>
+<td align="left">2021-02-28 18:00:00</td>
+</tr>
+<tr class="even">
+<td align="left">228</td>
+<td align="right">1855</td>
+<td align="right">85.6037736</td>
+<td align="left">2021-02-28 18:55:00</td>
+</tr>
+<tr class="odd">
+<td align="left">229</td>
+<td align="right">1900</td>
+<td align="right">84.8679245</td>
+<td align="left">2021-02-28 19:00:00</td>
+</tr>
+<tr class="even">
+<td align="left">240</td>
+<td align="right">1955</td>
+<td align="right">33.5283019</td>
+<td align="left">2021-02-28 19:55:00</td>
+</tr>
+<tr class="odd">
+<td align="left">241</td>
+<td align="right">2000</td>
+<td align="right">19.6226415</td>
+<td align="left">2021-02-28 20:00:00</td>
+</tr>
+<tr class="even">
+<td align="left">252</td>
+<td align="right">2055</td>
+<td align="right">20.1509434</td>
+<td align="left">2021-02-28 20:55:00</td>
+</tr>
+<tr class="odd">
+<td align="left">253</td>
+<td align="right">2100</td>
+<td align="right">15.9433962</td>
+<td align="left">2021-02-28 21:00:00</td>
+</tr>
+<tr class="even">
+<td align="left">264</td>
+<td align="right">2155</td>
+<td align="right">2.6226415</td>
+<td align="left">2021-02-28 21:55:00</td>
+</tr>
+<tr class="odd">
+<td align="left">265</td>
+<td align="right">2200</td>
+<td align="right">1.4528302</td>
+<td align="left">2021-02-28 22:00:00</td>
+</tr>
+<tr class="even">
+<td align="left">276</td>
+<td align="right">2255</td>
+<td align="right">4.6037736</td>
+<td align="left">2021-02-28 22:55:00</td>
+</tr>
+<tr class="odd">
+<td align="left">277</td>
+<td align="right">2300</td>
+<td align="right">3.3018868</td>
+<td align="left">2021-02-28 23:00:00</td>
+</tr>
+<tr class="even">
+<td align="left">288</td>
+<td align="right">2355</td>
+<td align="right">1.0754717</td>
+<td align="left">2021-02-28 23:55:00</td>
+</tr>
+</tbody>
+</table>
+<p>Note that two succeeding rows number are congruent to 0 mod 12 and 1 mod 12, respectively. Why 12? Intervals are five minutes apart. One hour is 60 minutes, and sixty divided by 5 is 12. Then, the next column jumps to the next hundred.</p>
+<p>However, the more interesting pattern to look at is <code>intervalSteps[c(12, 13),]</code> or, in general, <code>intervalSteps[c(x, x + 1), ]</code> where <code>x &gt;= 12</code>. Note that <code>intervalSteps[c(x, x + 1), ]$interval = (i1, i2)</code>, and <code>i1</code> is congruent to 55 mod 100, i2 is congruent to 0 mod 100.</p>
+<p>That out of the way, let’s get back to the questions at hand.</p>
+>>>>>>> 15e8c72f82636280b13416e04b221061ce88eefc
 <p>The start and end of the interval will be in 24-hour format.</p>
 <pre class="r"><code>sprintf(&quot;Maximum number of steps on average taken from %s to %s, number of steps = %f&quot;,
         int2Time(intervalStart), int2Time(intervalEnd), averageSteps)</code></pre>
@@ -1035,12 +1357,22 @@ ggplot(stepsPerInterval, aes(time, steps, col = factor(is.Weekday))) +
 <pre class="r"><code>dev.copy(png, &quot;plots/06-WkDayVsWkEnd.png&quot;)</code></pre>
 <pre><code>## png 
 ##   4</code></pre>
+<<<<<<< HEAD
 <p>The plot tells us that on both weekends and weekdays, the subject is on average inactive, possibly asleep, from midnight to 5:30 in the morning. However, inactivity on weekends stretches to about 8:00 AM, whereas the subject starts moving about 5:30 AM on weekdays. Activity on both weekends and weekdays spikes at 9:00 AM, although to a lesser extent for the former.</p>
 <p>Oddly, activity from 10:00 AM all the way to 5:30 PM is heavier on weekends, then wanes at 11:00 PM for both weekends and weekdays. The subject is probably at a desk, maybe at school or at work, at those times during weekdays, and outdoors, possibly at the mall, on weekends.</p>
 </div>
 <div id="recreating-this-pdf-or-html" class="section level2">
 <h2><span class="header-section-number">2.5</span> Recreating this PDF or HTML</h2>
 <p>The YAML of this document instructs <code>knitr</code> to produce both a PDF and an HTML. From the command line, you can issue the command: <code>R -e &quot;rmarkdown::render(&#39;PA1_template.Rmd&#39;)&quot;</code> no matter your Operating System. You can also render it using the RStudio <code>Knit</code> button (where’s the fun in that?) or the R console, with the command <code>rmarkdown::render(&#39;PA1_template.Rmd&#39;)</code>.</p>
+=======
+<p>The plot tells us that on both weekends and weekdays, the subject is on average inactive, possibly asleep, from midnight to 5:30 in the morning. However, inactivity on weekends stretches to about 8:00 AM, whereas the subject starts moving about 5:30 AM on weekdays. Activity on both weekends and weekdays spike at 9:00 AM, although to a lesser extent for the former.</p>
+<p>Oddly, activity from 10:00 AM all the way to 5:30 PM is heavier on weekends, then wane at 11:00 PM for both weekends and weekdays.</p>
+>>>>>>> 15e8c72f82636280b13416e04b221061ce88eefc
+</div>
+<div id="reproducing-this-pdf-or-html" class="section level2">
+<h2><span class="header-section-number">2.5</span> Reproducing this PDF or HTML</h2>
+<p>The YAML of this document instructs <code>knitr</code> to produce both a PDF and an HTML. From the command line, you can issue the command: <code>R -e &quot;rmarkdown::render(&#39;PA1_template.Rmd&#39;)&quot;</code> no matter your OS. You can also render it using the <code>Knit</code> button (where’s the fun in that) or the R console, with the command <code>rmarkdown::render(&#39;PA1_template.Rmd&#39;)</code>.</p>
+<p>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD ||||||| merged common ancestors Oddly, activity from 10:00 AM all the way to 5:30 PM is heavier on weekdays, then wane at 11:00 PM for both weekends and weekdays. ======= Oddly, activity from 10:00 AM all the way to 5:30 PM is heavier on weekends, then wane at 11:00 PM for both weekends and weekdays. &gt;&gt;&gt;&gt;&gt;&gt;&gt; f617e3e72bd45b6fa8156492eb587faf1fd57f26</p>
 </div>
 </div>
 
