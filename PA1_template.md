@@ -417,6 +417,7 @@ Note that two succeeding rows number are congruent to 0 mod 12 and 1 mod 12, res
 However, the more interesting pattern to look at is `intervalSteps[c(12, 13),]` or, in general, `intervalSteps[x, (x + 1), ]` where `x >= 12`. Note that `intervalSteps[c(x, x + 1), ]$interval = (i1, i2)`, and `i1` is congruent to 55 mod 100, i2 is congruent to 0 mod 100.
 
 That out of the way, let's get back to the questions at hand.
+
 Average the number of steps over each five-minute interval and plot the time series.
 
 ```r
@@ -600,7 +601,7 @@ The plot tells us that on both weekends and weekdays, the subject is on average 
 
 Oddly, activity from 10:00 AM all the way to 5:30 PM is heavier on weekends, then wanes at 11:00 PM for both weekends and weekdays. The subject is probably at a desk, maybe at school or at work, at those times during weekdays, and outdoors, possibly at the mall, on weekends.
 
-## Recreating this PDF or HTML
+# Recreating this PDF or HTML
 
 The YAML of this document instructs `knitr` to produce both a PDF and an HTML. From the command line, you can issue the command:
 `R -e "rmarkdown::render('PA1_template.Rmd')"` no matter your Operating System. You can also render it using the RStudio `Knit` button (where's the fun in that?) or the R console, with the command `rmarkdown::render('PA1_template.Rmd')`.
