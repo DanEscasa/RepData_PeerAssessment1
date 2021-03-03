@@ -371,6 +371,7 @@ pre code {
 <li><a href="#are-there-differences-in-activity-patterns-between-weekdays-and-weekends"><span class="toc-section-number">2.4</span> Are there differences in activity patterns between weekdays and weekends?</a></li>
 </ul></li>
 <li><a href="#recreating-this-pdf-or-html"><span class="toc-section-number">3</span> Recreating this PDF or HTML</a></li>
+<li><a href="#the-environment-of-this-project"><span class="toc-section-number">4</span> The environment of this project</a></li>
 </ul>
 </div>
 
@@ -926,11 +927,12 @@ library(dplyr)</code></pre>
 </tbody>
 </table>
 <p>Note that two succeeding rows number are congruent to 0 mod 12 and 1 mod 12, respectively. Why 12? Intervals are five minutes apart. One hour is 60 minutes, and sixty divided by 5 is 12. Then, the next column jumps to the next hundred.</p>
-<p>However, the more interesting pattern to look at is <code>intervalSteps[c(12, 13),]</code> or, in general, <code>intervalSteps[x, (x + 1), ]</code> where <code>x &gt;= 12</code>. Note that <code>intervalSteps[c(x, x + 1), ]$interval = (i1, i2)</code>, and <code>i1</code> is congruent to 55 mod 100, i2 is congruent to 0 mod 100.</p>
+<p>However, the more interesting pattern to look at is <code>intervalSteps[c(12, 13),]</code> or, in general, <code>intervalSteps[x, (x + 1), ]</code> where <code>x &gt;= 12</code>. Note that <code>intervalSteps[c(x, (x + 1)), ]$interval = (i1, i2)</code>, and <code>i1</code> is congruent to 55 mod 100, i2 is congruent to 0 mod 100.</p>
 <p>That out of the way, let’s get back to the questions at hand.</p>
 <p>Average the number of steps over each five-minute interval and plot the time series.</p>
-<pre class="r"><code>intervalSteps &lt;- aggregate(steps ~ interval, data = activity, mean)
-intervalSteps$time &lt;- as.POSIXct(int2Time(intervalSteps$interval), format = &quot;%H:%M&quot;, tz = &quot;MST&quot;)
+<pre class="r"><code>intervalSteps &lt;- aggregate(steps ~ interval, data = activity, mean) %&gt;%
+  mutate(&quot;time&quot; = as.POSIXct(int2Time(interval), format = &quot;%H:%M&quot;, tz = &quot;MST&quot;))
+
 ggplot(intervalSteps, aes(x = time, y = steps)) +
      geom_line() +
      scale_x_datetime(labels = date_format(&quot;%H:%M&quot;, tz = &quot;MST&quot;), 
@@ -1024,6 +1026,7 @@ with(adjSteps,
 <pre class="r"><code>stepsPerInterval$time &lt;- as.POSIXct(int2Time(intervalSteps$interval), format = &quot;%H:%M&quot;, tz = &quot;MST&quot;)</code></pre>
 <p>Map the <code>is.Weekday</code> column to the more readable “Weekend” and “Weekday”, then create the plot.</p>
 <pre class="r"><code>is.Weekday.labs &lt;- as_labeller(c(&quot;FALSE&quot; = &quot;Weekend&quot;, &quot;TRUE&quot; = &quot;Weekday&quot;))
+
 ggplot(stepsPerInterval, aes(time, steps, col = factor(is.Weekday))) +
   facet_wrap(.~factor(is.Weekday), dir = &quot;v&quot;, 
              labeller = is.Weekday.labs) +
@@ -1043,6 +1046,10 @@ ggplot(stepsPerInterval, aes(time, steps, col = factor(is.Weekday))) +
 <div id="recreating-this-pdf-or-html" class="section level1">
 <h1><span class="header-section-number">3</span> Recreating this PDF or HTML</h1>
 <p>The YAML of this document instructs <code>knitr</code> to produce both a PDF and an HTML. From the command line, you can issue the command: <code>R -e &quot;rmarkdown::render(&#39;PA1_template.Rmd&#39;)&quot;</code> no matter your Operating System. You can also render it using the RStudio <code>Knit</code> button (where’s the fun in that?) or the R console, with the command <code>rmarkdown::render(&#39;PA1_template.Rmd&#39;)</code>.</p>
+</div>
+<div id="the-environment-of-this-project" class="section level1">
+<h1><span class="header-section-number">4</span> The environment of this project</h1>
+<p>This project was created on a Lenovo ThinkPad X201T with 4GB of RAM, running Debian GNU/Linux 10 (buster), R version 3.5.2 (2018-12-20), RStudio.Version 1.3.1056 Water Lily.</p>
 </div>
 
 

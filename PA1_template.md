@@ -414,15 +414,16 @@ knitr::kable(head(subset(activity, interval %% 100 %in% c(0, 55))))
 |36 |    NA|2012-10-01 |      255|
 Note that two succeeding rows number are congruent to 0 mod 12 and 1 mod 12, respectively. Why 12? Intervals are five minutes apart. One hour is 60 minutes, and sixty divided by 5 is 12. Then, the next column jumps to the next hundred. 
 
-However, the more interesting pattern to look at is `intervalSteps[c(12, 13),]` or, in general, `intervalSteps[x, (x + 1), ]` where `x >= 12`. Note that `intervalSteps[c(x, x + 1), ]$interval = (i1, i2)`, and `i1` is congruent to 55 mod 100, i2 is congruent to 0 mod 100.
+However, the more interesting pattern to look at is `intervalSteps[c(12, 13),]` or, in general, `intervalSteps[x, (x + 1), ]` where `x >= 12`. Note that `intervalSteps[c(x, (x + 1)), ]$interval = (i1, i2)`, and `i1` is congruent to 55 mod 100, i2 is congruent to 0 mod 100.
 
 That out of the way, let's get back to the questions at hand.
 
 Average the number of steps over each five-minute interval and plot the time series.
 
 ```r
-intervalSteps <- aggregate(steps ~ interval, data = activity, mean)
-intervalSteps$time <- as.POSIXct(int2Time(intervalSteps$interval), format = "%H:%M", tz = "MST")
+intervalSteps <- aggregate(steps ~ interval, data = activity, mean) %>%
+  mutate("time" = as.POSIXct(int2Time(interval), format = "%H:%M", tz = "MST"))
+
 ggplot(intervalSteps, aes(x = time, y = steps)) +
      geom_line() +
      scale_x_datetime(labels = date_format("%H:%M", tz = "MST"), 
@@ -577,6 +578,7 @@ Map the `is.Weekday` column to the more readable "Weekend" and "Weekday", then c
 
 ```r
 is.Weekday.labs <- as_labeller(c("FALSE" = "Weekend", "TRUE" = "Weekday"))
+
 ggplot(stepsPerInterval, aes(time, steps, col = factor(is.Weekday))) +
   facet_wrap(.~factor(is.Weekday), dir = "v", 
              labeller = is.Weekday.labs) +
@@ -605,3 +607,7 @@ Oddly, activity from 10:00 AM all the way to 5:30 PM is heavier on weekends, the
 
 The YAML of this document instructs `knitr` to produce both a PDF and an HTML. From the command line, you can issue the command:
 `R -e "rmarkdown::render('PA1_template.Rmd')"` no matter your Operating System. You can also render it using the RStudio `Knit` button (where's the fun in that?) or the R console, with the command `rmarkdown::render('PA1_template.Rmd')`.
+
+# The environment of this project
+
+This project was created on a Lenovo ThinkPad X201T with 4GB of RAM, running Debian GNU/Linux 10 (buster), R version 3.5.2 (2018-12-20),  RStudio.Version 1.3.1056 Water Lily.
